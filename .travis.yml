@@ -4,6 +4,7 @@ python:
 
 os:
     - linux
+dist: xenial
 
 sudo: true
 
