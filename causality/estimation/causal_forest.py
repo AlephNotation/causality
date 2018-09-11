@@ -1,4 +1,5 @@
 import numpy as np
+import rpy2
 from rpy2.robjects import r as R
 from sklearn.exceptions import NotFittedError
 
@@ -14,7 +15,18 @@ class CausalForest(Estimator):
         """ Initialize a causal forest. Loads `R` library `grf`.  """
         super().__init__()
 
-        R("library(grf)")  # load grf R library
+        try:
+            R("library(grf)")  # load grf R library
+        except rpy2.rinterface.RRuntimeError:
+            try:
+                R('install.packages("grf")')
+            except rpy2.rinterface.RRuntimeError:
+                raise ValueError(
+                    "Attempted to install necessary R dependency 'grf' "
+                    "in R, but installation failed.\nPlease first install 'grf' "
+                    "from R-package repository CRAN using "
+                    'install.packages("grf") inside an R-shell.'
+                )
         self.rforest = None
 
     @r_compatibility
