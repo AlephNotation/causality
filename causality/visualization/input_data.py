@@ -1,10 +1,13 @@
+# vim:foldmethod=marker
 import matplotlib.pyplot as plt
 import networkx as nx
 
 
+#  Causal Graph {{{ #
+
 def causal_graph(treatment_variable, outcome_variable, covariate_variables,
-          unobserved_confounders=None, instrument_variables=None,
-          output_filename=None):
+                 unobserved_confounders=None, instrument_variables=None,
+                 output_filename=None):
     graph = nx.DiGraph()
 
 
@@ -41,3 +44,7 @@ def causal_graph(treatment_variable, outcome_variable, covariate_variables,
 
         return graph, figure
     return graph
+#  }}} Causal Graph #
+
+
+

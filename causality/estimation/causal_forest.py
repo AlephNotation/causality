@@ -7,9 +7,14 @@ from causality.estimation.estimator import Estimator
 
 
 class CausalForest(Estimator):
-    def __init__(self, *args, **kwargs):
+    """ Causal Forest Estimator.
+        Uses `rpy2` to wrap generalized random forest `R` library `grf`.
+    """
+    def __init__(self) -> None:
+        """ Initialize a causal forest. Loads `R` library `grf`.  """
+        super().__init__()
+
         R("library(grf)")  # load grf R library
-        super().__init__(*args, **kwargs)
         self.rforest = None
 
     @r_compatibility

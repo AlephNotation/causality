@@ -5,6 +5,7 @@ import numpy as np
 
 
 class Estimator(metaclass=ABCMeta):
+    """ Base class for causal effect estimators. """
     @abc.abstractmethod
     def fit(self, covariates, observed_outcomes, treatment_assignment, *args, **kwargs):
         raise NotImplementedError()
