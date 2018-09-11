@@ -1,0 +1,23 @@
+language: python
+python:
+    - "3.5"
+
+os:
+    - linux
+
+sudo: true
+
+install:
+  - sudo add-apt-repository deb https://cran.rstudio.com/bin/linux/ubuntu xenial/
+  - sudo apt-get update
+  - sudo apt-get install r-base-dev
+  - pip install --upgrade pip
+  - python setup.py install
+  - pip install pytest-cov
+  - pip install coveralls 
+
+script: 
+    - bash ci_scripts/run_tests.sh
+
+after_success:
+    - coveralls
