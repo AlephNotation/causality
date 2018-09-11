@@ -1,7 +1,10 @@
+# vim:foldmethod=marker
 from rpy2.robjects import r as R
 from rpy2.robjects import FloatVector
 from functools import wraps
 
+
+#  R Compatibility {{{ #
 
 def to_robjects(covariates, observed_outcomes=None, treatment_assignment=None):
     num_units, *_ = covariates.shape
@@ -39,3 +42,4 @@ def r_compatibility(function):
         )
 
     return wrapped
+#  }}} R Compatibility #
