@@ -1,3 +1,4 @@
+""" Test estimation of ATE (and ITE) on a single replicate of the IHDP dataset. """
 import numpy as np
 
 from causality.data.datasets.ihdp import IHDP
@@ -10,7 +11,8 @@ from causality.diagnostics.synthetic_data import abs_ate
 def test_causal_forest(replicate_number=0):
     train_data, test_data = IHDP.from_npz(replicate_number=replicate_number)
     error = abs_ate(
-        test_data=test_data,
+        mu1=test_data.mu1,
+        mu0=test_data.mu0,
         predicted_ate=CausalForest().fit(**train_data.asdict()).predict_ate(
             test_data.covariates
         )
@@ -22,7 +24,8 @@ def test_causal_forest(replicate_number=0):
 def test_linear_regression(replicate_number=0):
     train_data, test_data = IHDP.from_npz(replicate_number=replicate_number)
     error = abs_ate(
-        test_data=test_data,
+        mu1=test_data.mu1,
+        mu0=test_data.mu0,
         predicted_ate=LinearRegression().fit(**train_data.asdict()).predict_ate(
             test_data.covariates
         )
@@ -34,7 +37,8 @@ def test_linear_regression(replicate_number=0):
 def test_nearest_neighbor_matching(replicate_number=0, n_neighbors=100):
     train_data, test_data = IHDP.from_npz(replicate_number=replicate_number)
     error = abs_ate(
-        test_data=test_data,
+        mu1=test_data.mu1,
+        mu0=test_data.mu0,
         predicted_ate=NearestNeighborMatching(n_neighbors=n_neighbors).fit(
             **train_data.asdict()
         ).predict_ate(test_data.covariates)
