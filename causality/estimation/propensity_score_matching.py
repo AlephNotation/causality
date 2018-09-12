@@ -7,12 +7,13 @@ from causality.estimation.estimator import Estimator
 
 class PropensityScoreMatching(LogisticRegression, Estimator):
     def __init__(self,
+                 random_state=None,
                  matching_method=lambda: NearestNeighbors(
                      n_neighbors=100, algorithm="ball_tree"
                  ), *args, **kwargs):
 
         self.matching_method = matching_method
-        super().__init__(*args, **kwargs)
+        super().__init__(*args, random_state=random_state, **kwargs)
 
     def fit(self, covariates, observed_outcomes, treatment_assignment, *args, **kwargs):
         # Learn propensity scores = probability of receiving treatment for covariates using logistic regression
@@ -50,12 +51,11 @@ class PropensityScoreMatching(LogisticRegression, Estimator):
 
 
 class NearestNeighborMatching(PropensityScoreMatching):
-    def __init__(self, n_neighbors=100, *args, **kwargs):
+    def __init__(self, n_neighbors=100, algorithm="ball_tree", random_state=None):
         super().__init__(
             matching_method=lambda: NearestNeighbors(
-                n_neighbors=n_neighbors,
-                *args, **kwargs
-            )
+                n_neighbors=n_neighbors, algorithm=algorithm,
+            ), random_state=random_state,
         )
 
 
