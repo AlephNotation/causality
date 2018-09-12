@@ -20,4 +20,8 @@ install:
   - pip install coveralls 
 
 script:
-    - echo "Success"
+    - py.test 
+    
+after_success:
+    - coveralls
+
