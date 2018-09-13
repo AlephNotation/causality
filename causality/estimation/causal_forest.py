@@ -54,7 +54,9 @@ class CausalForest(Estimator):
     def predict(self, covariates):
         if self.rforest is None:
             raise NotFittedError('This CausalForest instance is not fitted yet',)
+
         predictions = np.squeeze(
             R("predict")(self.rforest, covariates).rx2("predictions")
         )
+
         return predictions

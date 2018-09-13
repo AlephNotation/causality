@@ -2,6 +2,7 @@
 import numpy as np
 
 from causality.data.datasets.ihdp import IHDP
+from causality.estimation.bart import BART
 from causality.estimation.causal_forest import CausalForest
 from causality.estimation.linear_regression import LinearRegression
 from causality.estimation.propensity_score_matching import NearestNeighborMatching
@@ -48,7 +49,7 @@ def test_nearest_neighbor_matching(replicate_number=0, n_neighbors=100):
     assert np.allclose(error, 0., atol=0.1)
 
 
-def test_virtual_twins(replicate_number=0, n_neighbors=100):
+def test_virtual_twins(replicate_number=0):
     train_data, test_data = IHDP.from_npz(replicate_number=replicate_number)
     error = abs_ate(
         mu1=test_data.mu1,
@@ -56,6 +57,16 @@ def test_virtual_twins(replicate_number=0, n_neighbors=100):
         predicted_ate=VirtualTwins().fit(
             **train_data.asdict()
         ).predict_ate(test_data.covariates)
+    )
+
+    assert np.allclose(error, 0., atol=0.1)
+
+def test_bart(replicate_number=0):
+    train_data, test_data = IHDP.from_npz(replicate_number=replicate_number)
+    error = abs_ate(
+        mu1=test_data.mu1,
+        mu0=test_data.mu0,
+        predicted_ate=BART().fit(**train_data.asdict()).predict_ate(test_data.covariates)
     )
 
     assert np.allclose(error, 0., atol=0.1)
