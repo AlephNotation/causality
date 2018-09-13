@@ -1,7 +1,9 @@
 # vim:foldmethod=marker
+from functools import wraps
+
+import numpy as np
 from rpy2.robjects import r as R
 from rpy2.robjects import FloatVector
-from functools import wraps
 
 
 #  R Compatibility {{{ #
@@ -88,3 +90,85 @@ def r_compatibility(method):
 
     return wrapped
 #  }}} R Compatibility #
+
+
+def treatment_to_covariate(covariates, treatment_assignment):
+    """ Append a treatment assignment columns to a given `covariate` matrix.
+
+    Parameters
+    ----------
+    covariates : np.ndarray
+        Covariates describing units. Array of shape `(num_units, num_covariates_per_unit)`.
+    treatment_assignment : np.ndarray
+        Binary indicator array describing which units were treated.
+
+    Returns
+    ----------
+    new_covariates : np.ndarray
+        Covariates containing appended column for treatment assignment.
+        Array of shape `(num_units, num_covariates_per_unit + 1)`.
+
+    Examples
+    ----------
+    TODO
+
+    """
+    print(covariates.shape, treatment_assignment.shape)
+    return np.concatenate(
+        (covariates, np.expand_dims(treatment_assignment, 1)), axis=1
+    )
+
+
+def treatment_control_clone(convert_to_robjects=False):
+    def treatment_control_clone_inner(method):
+        @wraps(method)
+        def wrapped(self, covariates, **kwargs):
+            num_units, *_ = covariates.shape
+
+            all_treated = np.ones(num_units)
+            none_treated = np.zeros(num_units)
+
+            covariates_treated = treatment_to_covariate(
+                covariates=covariates, treatment_assignment=all_treated
+            )
+
+            covariates_control = treatment_to_covariate(
+                covariates=covariates, treatment_assignment=none_treated
+            )
+            if convert_to_robjects:
+                covariates_treated = R("matrix")(
+                    FloatVector(covariates_treated.flatten()),
+                    nrow=num_units
+                )
+
+                covariates_control = R("matrix")(
+                    FloatVector(covariates_control.flatten()),
+                    nrow=num_units
+                )
+
+            covariate_clones = {
+                "covariates_treated": covariates_treated,
+                "covariates_control": covariates_control
+            }
+
+            return method(
+                self,
+                **covariate_clones, **kwargs
+            )
+
+        return wrapped
+    return treatment_control_clone_inner
+
+
+def treatment_is_covariate(method):
+    @wraps(method)
+    def wrapped(self, covariates, observed_outcomes, treatment_assignment, **kwargs):
+        new_covariates = treatment_to_covariate(
+            covariates=covariates, treatment_assignment=treatment_assignment
+        )
+        return method(
+            self,
+            covariates=new_covariates, observed_outcomes=observed_outcomes,
+            **kwargs
+        )
+    return wrapped

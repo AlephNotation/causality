@@ -22,6 +22,5 @@ class VirtualTwins(RandomForestRegressor, Estimator):
         covariates_control = np.concatenate(
             (covariates, np.zeros((num_covariates, 1))), axis=1
         )
-        print(covariates.shape, covariates_control.shape)
 
         return super().predict(covariates_treated) - super().predict(covariates_control)
