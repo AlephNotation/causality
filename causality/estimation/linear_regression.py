@@ -1,7 +1,7 @@
-import numpy as np
 from sklearn.linear_model import LinearRegression as sklearn_LinearRegression
 from sklearn.exceptions import NotFittedError
 
+from causality.data.transformations import treatment_is_covariate
 from causality.estimation.estimator import Estimator
 from causality.exceptions import CannotPredictITEError
 
@@ -11,10 +11,10 @@ class LinearRegression(sklearn_LinearRegression, Estimator):
         self.treatment_coefficient = None
         super().__init__(*args, **kwargs)
 
-    def fit(self, covariates, observed_outcomes, treatment_assignment, *args, **kwargs):
-        features = np.concatenate((np.expand_dims(treatment_assignment, axis=1), covariates), axis=1)
-        super().fit(features, observed_outcomes)
-        self.treatment_coefficient, *_ = self.coef_
+    @treatment_is_covariate
+    def fit(self, covariates, observed_outcomes, *args, **kwargs):
+        super().fit(covariates, observed_outcomes)
+        *_, self.treatment_coefficient = self.coef_
         return self
 
     def predict(self, *args, **kwargs):

@@ -120,7 +120,29 @@ def treatment_to_covariate(covariates, treatment_assignment):
 
 
 def treatment_control_clone(convert_to_robjects=False):
+    """ Decorator to clone covariates, resulting in one treated and one control version of each unit.
+        Hereby, the treatment assignment is appended as a new covariate.
+        Optionally may convert the two resulting covariate arrays into `rpy2.robjects`.
+
+    Parameters
+    ----------
+    convert_to_robjects : bool, optional
+        Whether resulting covariate arrays should be converted to `rpy2.robjects`.
+        Default: `False`
+
+    Returns
+    ----------
+    clone_dict : dict
+        Dictionary with keys `"covariates_treated"`, `"covariates_control"`.
+        Each maps to a `numpy.ndarray` of shape `(num_units, num_covariates_per_unit + 1)`.
+
+    Examples
+    ----------
+    TODO
+
+    """
     def treatment_control_clone_inner(method):
+        """ Decorator to wrap a method that requires access to treated and control version of covariates. """
         @wraps(method)
         def wrapped(self, covariates, **kwargs):
             num_units, *_ = covariates.shape
@@ -161,6 +183,24 @@ def treatment_control_clone(convert_to_robjects=False):
 
 
 def treatment_is_covariate(method):
+    """ Decorate `method` that expects treatment assignment as covariate.
+        After decoration, the method can be called with separate covariates
+        and treatment assignment arrays and conversion between those two
+        interfaces is handled by this decorator.
+
+    Parameters
+    ----------
+    method : TODO
+
+    Returns
+    ----------
+    TODO
+
+    Examples
+    ----------
+    TODO
+
+    """
     @wraps(method)
     def wrapped(self, covariates, observed_outcomes, treatment_assignment, **kwargs):
         new_covariates = treatment_to_covariate(
