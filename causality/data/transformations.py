@@ -113,14 +113,13 @@ def treatment_to_covariate(covariates, treatment_assignment):
     TODO
 
     """
-    print(covariates.shape, treatment_assignment.shape)
     return np.concatenate(
         (covariates, np.expand_dims(treatment_assignment, 1)), axis=1
     )
 
 
-def treatment_control_clone(convert_to_robjects=False):
-    """ Decorator to clone covariates, resulting in one treated and one control version of each unit.
+def virtual_twins(convert_to_robjects=False):
+    """ Decorator to clone covariates, resulting in one treated and one control twin of each unit.
         Hereby, the treatment assignment is appended as a new covariate.
         Optionally may convert the two resulting covariate arrays into `rpy2.robjects`.
 

@@ -46,6 +46,7 @@ def abs_ate(mu1, mu0, predicted_ate):
     true_ate = np.mean(mu1 - mu0)
     return abs(true_ate - predicted_ate)
 
+
 def rmse_ite(mu1, mu0, predicted_ite):
     """ Root mean squared error of individualized treatment effect prediction.
         `mu1` is an array of treatment effects for each unit when treated
