@@ -61,6 +61,7 @@ def test_virtual_twins(replicate_number=0):
 
     assert np.allclose(error, 0., atol=0.1)
 
+
 def test_bart(replicate_number=0):
     train_data, test_data = IHDP.from_npz(replicate_number=replicate_number)
     error = abs_ate(

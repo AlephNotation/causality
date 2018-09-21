@@ -140,7 +140,7 @@ def virtual_twins(convert_to_robjects=False):
     TODO
 
     """
-    def treatment_control_clone_inner(method):
+    def virtual_twins_inner(method):
         """ Decorator to wrap a method that requires access to treated and control version of covariates. """
         @wraps(method)
         def wrapped(self, covariates, **kwargs):
@@ -178,7 +178,7 @@ def virtual_twins(convert_to_robjects=False):
             )
 
         return wrapped
-    return treatment_control_clone_inner
+    return virtual_twins_inner
 
 
 def treatment_is_covariate(method):

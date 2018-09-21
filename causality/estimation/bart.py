@@ -3,7 +3,7 @@ import rpy2
 from rpy2.robjects import r as R
 
 from causality.data.transformations import (
-    r_compatibility, treatment_is_covariate, treatment_control_clone
+    r_compatibility, treatment_is_covariate, virtual_twins
 )
 from causality.estimation.estimator import Estimator
 
@@ -40,7 +40,7 @@ class BART(Estimator):
         )
         return self
 
-    @treatment_control_clone(convert_to_robjects=True)
+    @virtual_twins(convert_to_robjects=True)
     def predict(self, covariates_treated, covariates_control, *args, **kwargs):
         # XXX: Why does this not work to predict ate properly?
         treated_predictions = np.mean(
