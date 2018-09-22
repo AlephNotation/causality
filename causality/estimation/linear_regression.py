@@ -1,9 +1,8 @@
 from sklearn.linear_model import LinearRegression as sklearn_LinearRegression
-from sklearn.exceptions import NotFittedError
 
 from causality.data.transformations import treatment_is_covariate
 from causality.estimation.estimator import Estimator
-from causality.exceptions import CannotPredictITEError
+from causality.exceptions import CannotPredictITEError, NotFittedError
 
 
 class LinearRegression(sklearn_LinearRegression, Estimator):

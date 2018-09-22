@@ -1,9 +1,9 @@
 import numpy as np
 import rpy2
 from rpy2.robjects import r as R
-from sklearn.exceptions import NotFittedError
 
 from causality.data.transformations import r_compatibility
+from causality.exceptions import NotFittedError
 from causality.estimation.estimator import Estimator
 
 
