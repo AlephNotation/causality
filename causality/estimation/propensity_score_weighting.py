@@ -43,4 +43,5 @@ class PropensityScoreWeighting(LogisticRegression, Estimator):
 
         # XXX: Figure out how to compute the weight for a single unit
         # then we can use that to compute treatment effects
+        raise NotImplementedError()
 

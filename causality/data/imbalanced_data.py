@@ -1,13 +1,14 @@
 import numpy as np
 from imblearn.over_sampling import RandomOverSampler
-from imblearn.over_sampling import RandomUnderSampler
+from imblearn.under_sampling import RandomUnderSampler
 
 from causality.data.datasets.dataset import Dataset
 
 
 def imbalanced_treatment_assignment(treatment_assignment, imbalance_percentage=75) -> bool:
+
     """ Determine if a given `treatment_assignment` is imbalanced.
-        Imbalance is given if more than `imbalance_percentage` % of the units
+        Imbalance is given if more than `imbalance_percentage` percent of the units
         were assigned to the same condition.
 
     Parameters
@@ -19,13 +20,14 @@ def imbalanced_treatment_assignment(treatment_assignment, imbalance_percentage=7
     imbalance_percentage : int, optional
         Integer percentage that serves as threshold to determine imbalance
         between classes.
-        Default: `75`, in which case imbalance is given if `75` % or more
+        Default: `75`, in which case imbalance is given if `75` percent or more
         of the units were in the same group.
 
     Returns
     ----------
     is_imbalanced : bool
         `True` iff control and treatment group have imbalanced size, `False` otherwise.
+
     """
     # if more than imbalance_percentage % of datapoints were either treated or
     # not treated, than we consider the dataset imbalanced.
