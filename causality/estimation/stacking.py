@@ -3,7 +3,7 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.linear_model import LinearRegression
 
-from causality.data.transformations import treatment_is_covariate, treatment_control_clone
+from causality.data.transformations import treatment_is_covariate, virtual_twins
 from causality.estimation.estimator import Estimator
 # from causality.estimation.propensity_score_matching import NearestNeighborMatching
 
@@ -36,7 +36,7 @@ class Stacking(Estimator):
 
         return self
 
-    @treatment_control_clone()
+    @virtual_twins()
     def predict(self, covariates_treated, covariates_control):
         predictions_treated = self.meta_learner.predict(np.squeeze([[
             base_learner.predict(np.expand_dims(unit, 0))
