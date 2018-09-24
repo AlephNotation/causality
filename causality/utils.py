@@ -1,12 +1,14 @@
 import warnings
 
 try:
+    # progressbars are an *optional* dependency.
     from tqdm import tqdm as optional_progressbar
 except ImportError:
     warnings.warn(
         "Package 'tqdm' not installed => No progressbar available. "
         "To enable progressbars run 'pip3 install tqdm'"
     )
+    # If they are not available, we use this mock class instead.
 
     class optional_progressbar(object):
         def __init__(self, iterable):
