@@ -35,7 +35,9 @@ class CFRNet(Estimator):
             seed=None,
             *args, **kwargs):
 
-        treatment_probability = np.mean(treatment_assignment)
+        self.configuration = configuration
+
+        self.treatment_probability = np.mean(treatment_assignment)
         _, num_covariates = covariates.shape
 
         dataset = Dataset(
@@ -74,7 +76,7 @@ class CFRNet(Estimator):
 
         #  Define Model Graph {{{ #
         dimensions = [num_covariates, configuration.dim_in, configuration.dim_out]
-        CFR = cfr_net(
+        self.CFR = cfr_net(
             x=placeholders["covariates"],
             t=placeholders["treatment_assignment"],
             y_=placeholders["responses"],
@@ -103,26 +105,28 @@ class CFRNet(Estimator):
         else:
             opt = tf.train.RMSPropOptimizer(lr, configuration.decay)
 
-        train_step = opt.minimize(CFR.tot_loss, global_step=global_step)
+        train_step = opt.minimize(self.CFR.tot_loss, global_step=global_step)
         #  }}} Define Model Graph #
 
         #  Set up feed dicts for losses {{{ #
         # XXX: Change this to use proper data access
         dict_factual = {
-            CFR.x: train_data.covariates,
-            CFR.t: np.expand_dims(train_data.treatment_assignment, 1),
-            CFR.y_: np.expand_dims(train_data.observed_outcomes, 1),
-            CFR.do_in: 1.0, CFR.do_out: 1.0, CFR.r_alpha: configuration.p_alpha,
-            CFR.r_lambda: configuration.p_lambda, CFR.p_t: treatment_probability
+            self.CFR.x: train_data.covariates,
+            self.CFR.t: np.expand_dims(train_data.treatment_assignment, 1),
+            self.CFR.y_: np.expand_dims(train_data.observed_outcomes, 1),
+            self.CFR.do_in: 1.0, self.CFR.do_out: 1.0,
+            self.CFR.r_alpha: configuration.p_alpha,
+            self.CFR.r_lambda: configuration.p_lambda,
+            self.CFR.p_t: self.treatment_probability
         }
 
         dict_valid = {
-            CFR.x: validation_data.covariates,
-            CFR.t: np.expand_dims(validation_data.treatment_assignment, 1),
-            CFR.y_: np.expand_dims(validation_data.observed_outcomes, 1),
-            CFR.do_in: 1.0, CFR.do_out: 1.0,
-            CFR.r_alpha: configuration.p_alpha, CFR.r_lambda: configuration.p_lambda,
-            CFR.p_t: treatment_probability
+            self.CFR.x: validation_data.covariates,
+            self.CFR.t: np.expand_dims(validation_data.treatment_assignment, 1),
+            self.CFR.y_: np.expand_dims(validation_data.observed_outcomes, 1),
+            self.CFR.do_in: 1.0, self.CFR.do_out: 1.0,
+            self.CFR.r_alpha: configuration.p_alpha, self.CFR.r_lambda: configuration.p_lambda,
+            self.CFR.p_t: self.treatment_probability
         }
 
         tensorflow_session.run(tf.global_variables_initializer())
@@ -147,30 +151,30 @@ class CFRNet(Estimator):
             #  Gradient Descent step {{{ #
             tensorflow_session.run(
                 train_step, feed_dict={
-                    CFR.x: x_batch, CFR.t: t_batch, CFR.y_: y_batch,
-                    CFR.do_in: configuration.dropout_in,
-                    CFR.do_out: configuration.dropout_out,
-                    CFR.r_alpha: configuration.p_alpha,
-                    CFR.r_lambda: configuration.p_lambda,
-                    CFR.p_t: treatment_probability
+                    self.CFR.x: x_batch, self.CFR.t: t_batch, self.CFR.y_: y_batch,
+                    self.CFR.do_in: configuration.dropout_in,
+                    self.CFR.do_out: configuration.dropout_out,
+                    self.CFR.r_alpha: configuration.p_alpha,
+                    self.CFR.r_lambda: configuration.p_lambda,
+                    self.CFR.p_t: self.treatment_probability
                 }
             )
             #  }}} Gradient Descent step #
 
             #  Project variable selection weights {{{ #
             if configuration.varsel:
-                wip = simplex_project(tensorflow_session.run(CFR.weights_in[0]), 1)
-                tensorflow_session.run(CFR.projection, feed_dict={CFR.w_proj: wip})
+                wip = simplex_project(tensorflow_session.run(self.CFR.weights_in[0]), 1)
+                tensorflow_session.run(self.CFR.projection, feed_dict={self.CFR.w_proj: wip})
             #  }}} Project variable selection weights #
 
             #  Network objective for training and validation {{{ #
             train_obj_loss, _, _ = tensorflow_session.run(
-                [CFR.tot_loss, CFR.pred_loss, CFR.imb_dist],
+                [self.CFR.tot_loss, self.CFR.pred_loss, self.CFR.imb_dist],
                 feed_dict=dict_factual
             )
 
             valid_obj_loss, _, _ = tensorflow_session.run(
-                [CFR.tot_loss, CFR.pred_loss, CFR.imb_dist],
+                [self.CFR.tot_loss, self.CFR.pred_loss, self.CFR.imb_dist],
                 feed_dict=dict_valid
             )
 
@@ -188,5 +192,61 @@ class CFRNet(Estimator):
 
         return self
 
-    def predict(self, covariates):
-        pass
+    def predict(self, tensorflow_session, covariates):
+        try:
+            self.CFR
+        except AttributeError:
+            # TODO: Message
+            raise NotFittedError()
+        num_units, _ = covariates.shape
+
+        treated_dict = {
+            self.CFR.x: covariates,
+            self.CFR.t: np.ones((num_units, 1)),
+            self.CFR.do_in: 1.0, self.CFR.do_out: 1.0,
+            self.CFR.r_alpha: self.configuration.p_alpha,
+            self.CFR.r_lambda: self.configuration.p_lambda,
+            self.CFR.p_t: self.treatment_probability
+        }
+
+        control_dict = {
+            self.CFR.x: covariates,
+            self.CFR.t: np.zeros((num_units, 1)),
+            self.CFR.do_in: 1.0, self.CFR.do_out: 1.0,
+            self.CFR.r_alpha: self.configuration.p_alpha,
+            self.CFR.r_lambda: self.configuration.p_lambda,
+            self.CFR.p_t: self.treatment_probability
+        }
+
+        treated_output = np.asarray(tensorflow_session.run([self.CFR.output], feed_dict=treated_dict))
+        control_output = np.asarray(tensorflow_session.run([self.CFR.output], feed_dict=control_dict))
+
+        return treated_output - control_output
+
+    def predict_ite(self, tensorflow_session, covariates):
+        return self.predict(tensorflow_session=tensorflow_session, covariates=covariates)
+
+    def predict_ate(self, tensorflow_session, covariates):
+        return np.mean(self.predict_ite(tensorflow_session=tensorflow_session, covariates=covariates))
+
+    def plot_train_trajectory(self, marker=None, keys=("train_loss", "val_loss"), titles=("Train", "Validation")):
+        import seaborn as sns
+        import matplotlib.pyplot as plt
+        figure, axes = plt.subplots(1, 2)
+
+        keys = ("train_loss", "val_loss")
+
+        progressbar = optional_progressbar(zip(axes, keys, titles), desc="Plotting train trajectory")
+
+        for axis, key, title in progressbar:
+            history = self.train_history[key]
+            epochs = range(len(history))
+            # axis.plot(epochs, history)
+            sns.lineplot(x=epochs, y=history, ax=axis, marker=marker)
+            axis.set_title(title)
+            axis.set_xlabel("Iteration")
+            axis.set_ylabel("Loss")
+
+        figure.suptitle("{} - Train Trajectory".format(self.__class__.__name__), size=14)
+
+        return (figure, axes)
