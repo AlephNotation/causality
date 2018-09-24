@@ -27,10 +27,6 @@ def to_robjects(covariates, observed_outcomes=None, treatment_assignment=None):
         Dictionary mapping names of given data (e.g. `covariates`) to
         corresponding `rpy2.robjects` objects.
 
-    Examples
-    ----------
-    TODO
-
     """
     num_units, *_ = covariates.shape
 
@@ -71,10 +67,6 @@ def r_compatibility(method):
         Method that takes `numpy.ndarray` objects for its inputs and
         uses `rpy2.robjects` inside its body to compute results.
 
-    Examples
-    ----------
-    TODO
-
     """
     @wraps(method)
     def wrapped(self, covariates, observed_outcomes=None, treatment_assignment=None, **kwargs):
@@ -108,10 +100,6 @@ def treatment_to_covariate(covariates, treatment_assignment):
         Covariates containing appended column for treatment assignment.
         Array of shape `(num_units, num_covariates_per_unit + 1)`.
 
-    Examples
-    ----------
-    TODO
-
     """
     return np.concatenate(
         (covariates, np.expand_dims(treatment_assignment, 1)), axis=1
@@ -134,10 +122,6 @@ def virtual_twins(convert_to_robjects=False):
     clone_dict : dict
         Dictionary with keys `"covariates_treated"`, `"covariates_control"`.
         Each maps to a `numpy.ndarray` of shape `(num_units, num_covariates_per_unit + 1)`.
-
-    Examples
-    ----------
-    TODO
 
     """
     def virtual_twins_inner(method):

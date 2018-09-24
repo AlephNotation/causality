@@ -1,10 +1,8 @@
-import numpy as np
-
 from causality.data.datasets.linear import Linear
 
 
-def linear_dataset(ate:float=10., num_units:int=10**4, num_covariates:int=5,
-                   seed:int=None):
+def linear_dataset(ate: float=10., num_units: int=10**4, num_covariates: int=5,
+                   seed: int=None) -> Linear:
     """ Generate a dataset with a constant treatment effect of `ate` on each treated unit.
         Covariates are drawn uniformly at random.
         This dataset is synthetic, so ground truth treatment effect is available.
