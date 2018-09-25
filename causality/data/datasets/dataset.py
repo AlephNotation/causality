@@ -24,7 +24,8 @@ class Dataset(object):
         for argument_name, argument_value in kwargs.items():
             self.__setattr__(argument_name, argument_value)
 
-    def from_csv(self, covariates_csv_filename, outcomes_csv_filename,
+    @classmethod
+    def from_csv(cls, covariates_csv_filename, outcomes_csv_filename,
                  treatment_column="TRT", outcome_column="chg", store_columns=None):
 
         covariates = pd.read_csv(covariates_csv_filename)
