@@ -61,9 +61,9 @@ class Dataset(object):
         assert max(unit_indices) <= self.num_units
         return self.__class__(**self.asdict(units=unit_indices))
 
-    def balanced_folds(self, num_splits, include_test_indices=False):
+    def balanced_folds(self, num_splits, include_test_indices=False, seed=None):
 
-        folds = StratifiedKFold(n_splits=10, random_state=1)
+        folds = StratifiedKFold(n_splits=10, random_state=seed)
         fold_indices = folds.split(
             np.zeros_like(self.treatment_assignment), self.treatment_assignment
         )
