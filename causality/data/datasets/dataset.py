@@ -37,8 +37,6 @@ class Dataset(object):
                 kwargs[store_column] = covariates[store_column]
                 covariates = covariates.drop([store_column], axis=1)
 
-        covariates = pd.get_dummies(covariates.drop([treatment_column], axis=1))
-
 
         if treatment_map:
             assert len(treatment_map.keys()) == 2
@@ -49,9 +47,11 @@ class Dataset(object):
             ]
         treatment = covariates[treatment_column].as_matrix()
 
+        covariates = pd.get_dummies(covariates.drop([treatment_column], axis=1))
+
         outcomes = pd.read_csv(outcomes_csv_filename)[outcome_column].as_matrix()
 
-        return self.__class__(
+        return cls(
             covariates=covariates,
             observed_outcomes=outcomes,
             treatment_assignment=treatment, **kwargs
