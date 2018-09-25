@@ -2,6 +2,8 @@ from collections import namedtuple
 import warnings
 
 import numpy as np
+import pandas as pd
+from sklearn.model_selection import StratifiedKFold
 
 TrainValidationSplit = namedtuple("TrainValidationSplit", ["train", "validation"])
 TrainTestValidationSplit = namedtuple(
@@ -21,6 +23,50 @@ class Dataset(object):
 
         for argument_name, argument_value in kwargs.items():
             self.__setattr__(argument_name, argument_value)
+
+    def from_csv(self, covariates_csv_filename, outcomes_csv_filename,
+                 treatment_column="TRT", outcome_column="chg", store_columns=None):
+
+        covariates = pd.read_csv(covariates_csv_filename)
+        if store_columns:
+            for store_column in store_columns:
+                self.__setattr__(store_column, covariates[store_column])
+                covariates = covariates.drop([store_column], axis=1)
+
+        covariates = pd.get_dummies(covariates.drop([treatment_column], axis=1)).as_matrix()
+
+
+        treatment = covariates[treatment_column].as_matrix()
+
+        outcomes = pd.read_csv(outcomes_csv_filename)[outcome_column].as_matrix()
+
+        return self.__class__(
+            covariates=covariates,
+            observed_outcomes=outcomes,
+            treatment_assignment=treatment
+        )
+
+
+    def keep_units(self, unit_indices):
+        assert max(unit_indices) <= self.num_units
+        return self.__class__(**self.asdict(units=unit_indices))
+
+    def balanced_folds(self, num_splits, include_test_indices=False):
+
+        folds = StratifiedKFold(n_splits=10, random_state=1)
+        fold_indices = folds.split(
+            np.zeros_like(self.treatment_assignment), self.treatment_assignment
+        )
+
+        for train_indices, test_indices in fold_indices:
+            if include_test_indices:
+                yield (self.keep_units(unit_indices=train_indices),
+                       self.keep_units(unit_indices=test_indices),
+                       test_indices)
+            else:
+                yield (self.keep_units(unit_indices=train_indices),
+                       self.keep_units(unit_indices=test_indices))
+
 
     def asdict(self, units=None):
         if units is not None:
