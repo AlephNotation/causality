@@ -29,9 +29,10 @@ class Dataset(object):
                  treatment_column="TRT", outcome_column="chg", store_columns=None):
 
         covariates = pd.read_csv(covariates_csv_filename)
+        kwargs = {}
         if store_columns:
             for store_column in store_columns:
-                self.__setattr__(store_column, covariates[store_column])
+                kwargs[store_column] = covariates[store_column]
                 covariates = covariates.drop([store_column], axis=1)
 
         covariates = pd.get_dummies(covariates.drop([treatment_column], axis=1)).as_matrix()
@@ -44,7 +45,7 @@ class Dataset(object):
         return self.__class__(
             covariates=covariates,
             observed_outcomes=outcomes,
-            treatment_assignment=treatment
+            treatment_assignment=treatment, **kwargs
         )
 
 
