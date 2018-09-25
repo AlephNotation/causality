@@ -37,7 +37,7 @@ class Dataset(object):
                 kwargs[store_column] = covariates[store_column]
                 covariates = covariates.drop([store_column], axis=1)
 
-        covariates = pd.get_dummies(covariates.drop([treatment_column], axis=1)).as_matrix()
+        covariates = pd.get_dummies(covariates.drop([treatment_column], axis=1))
 
 
         if treatment_map:
