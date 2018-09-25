@@ -42,6 +42,7 @@ class Dataset(object):
 
         if treatment_map:
             assert len(treatment_map.keys()) == 2
+            print(covariates.columns)
             covariates[treatment_column] = [
                 treatment_map[treatment_name]
                 for treatment_name in covariates[treatment_column]
