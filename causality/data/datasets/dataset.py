@@ -26,7 +26,9 @@ class Dataset(object):
 
     @classmethod
     def from_csv(cls, covariates_csv_filename, outcomes_csv_filename,
-                 treatment_column="TRT", outcome_column="chg", store_columns=None):
+                 treatment_column="TRT", outcome_column="chg",
+                 treatment_map=None,
+                 store_columns=None):
 
         covariates = pd.read_csv(covariates_csv_filename)
         kwargs = {}
@@ -38,6 +40,12 @@ class Dataset(object):
         covariates = pd.get_dummies(covariates.drop([treatment_column], axis=1)).as_matrix()
 
 
+        if treatment_map:
+            assert len(treatment_map.keys()) == 2
+            covariates[treatment_column] = [
+                treatment_map[treatment_name]
+                for treatment_name in covariates[treatment_column]
+            ]
         treatment = covariates[treatment_column].as_matrix()
 
         outcomes = pd.read_csv(outcomes_csv_filename)[outcome_column].as_matrix()
