@@ -2,8 +2,8 @@
 """ CFRNET """
 from collections import defaultdict
 
-from cfr.cfr_net import cfr_net
-from cfr.util import simplex_project
+from cfrnet.cfr.cfr_net import cfr_net
+from cfrnet.cfr.util import simplex_project
 import numpy as np
 import tensorflow as tf
 
