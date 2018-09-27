@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-# -*- coding: iso-8859-15 -*-
 from collections import namedtuple
 import numpy as np
 import pandas as pd
@@ -11,6 +9,8 @@ ZhaoTreatmentDifference = namedtuple(
 
 
 def zhao_treatment_difference(treatment_effect_predictions,
+                              validation_responses,
+                              validation_treatment_assignment,
                               quantiles=np.arange(0., 1.0, 0.01),
                               subgroup_function=np.mean,
                               as_dataframe=False):
@@ -22,12 +22,31 @@ def zhao_treatment_difference(treatment_effect_predictions,
 
     effect_thresholds = np.quantile(treatment_effect_predictions, q=quantiles)
 
-    subgroups = [
-        treatment_effect_predictions[treatment_effect_predictions >= threshold]
-        for threshold in effect_thresholds
-    ]
+    treatment_assignment = validation_treatment_assignment.astype(bool)
 
-    subgroup_statistics = [subgroup_function(subgroup) for subgroup in subgroups]
+    subgroups = []
+    for threshold in effect_thresholds:
+        relevant_units = validation_responses[treatment_effect_predictions > threshold]
+        subgroups.append({
+            "treated": validation_responses[
+                treatment_effect_predictions > threshold & validation_treatment_assignment
+            ],
+
+            "control": validation_responses[
+                treatment_effect_predictions > threshold & ~validation_treatment_assignment)
+            ],
+        })
+
+
+    # subgroups = [
+    #     treatment_effect_predictions[treatment_effect_predictions >= threshold]
+    #     for threshold in effect_thresholds
+    # ]
+
+    subgroup_statistics = [
+        subgroup_function(subgroup["treated"]) - subgroup_function(subgroup["control"])
+        for subgroup in subgroups
+    ]
 
     results = ZhaoTreatmentDifference(
         quantiles=quantiles,
