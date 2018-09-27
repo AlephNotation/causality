@@ -33,7 +33,7 @@ def zhao_treatment_difference(treatment_effect_predictions,
             ],
 
             "control": validation_responses[
-                treatment_effect_predictions > threshold & ~validation_treatment_assignment)
+                treatment_effect_predictions > threshold & ~validation_treatment_assignment
             ],
         })
 
