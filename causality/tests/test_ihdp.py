@@ -90,7 +90,7 @@ def test_cfrnet(replicate_number=0):
             ).predict_ate(tensorflow_session=session, covariates=test_data.covariates)
         )
 
-    assert np.allclose(error, 0., atol=0.1)
+    assert np.allclose(error, 0., atol=0.5)
 
 
 def test_bart(replicate_number=0):

@@ -1,10 +1,12 @@
 # vim: foldmethod=marker
 """ CFRNET """
+import argparse
 from collections import defaultdict
 
 from cfrnet.cfr.cfr_net import cfr_net
 from cfrnet.cfr.util import simplex_project
 import numpy as np
+from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
 
 from causality.data.datasets.dataset import Dataset
@@ -28,18 +30,18 @@ class CFRNet(Estimator):
             observed_outcomes,
             treatment_assignment,
             configuration=None,
-            optimizer="RMSProp",
             num_iterations=3000,
             num_iterations_per_decay=100,
             validation_fraction=0.1,
             seed=None,
+            center_data=True,
             *args, **kwargs):
 
         self.configuration = configuration
         if self.configuration is None:
             # use default configuration.
 
-            configuration = {
+            configuration = argparse.Namespace(**{
                 "rbf_sigma": 0.1, "dim_in": 200, "wass_lambda": 10.0,
                 "decay": 0.3, "dropout_in": 1.0, "weight_init": 0.1,
                 "use_p_correction": 0, "batch_size": 100, "rep_weight_decay": 0,
@@ -51,7 +53,8 @@ class CFRNet(Estimator):
                 "imb_fun": "wass", "split_output": 1, "optimizer": "Adam",
                 "pred_output_delay": 0, "loss": "l2", "sparse": 0,
                 "varsel": 0, "repetitions": 1, "output_delay": 100
-            }
+            })
+            self.configuration = configuration
 
         self.treatment_probability = np.mean(treatment_assignment)
         _, num_covariates = covariates.shape
@@ -63,8 +66,20 @@ class CFRNet(Estimator):
         )
 
         train_data, validation_data = dataset.split(
-            validation_fraction=validation_fraction, seed=configuration.seed
+            validation_fraction=validation_fraction, seed=seed
         )
+
+        self.center_data = center_data
+
+        if center_data:
+            self.covariates_scaler = StandardScaler().fit(dataset.covariates)
+            train_data.covariates = self.covariates_scaler.transform(
+                train_data.covariates
+            )
+
+            validation_data.covariates = self.covariates_scaler.transform(
+                validation_data.covariates
+            )
 
         #  Set up placeholders {{{ #
 
@@ -240,7 +255,14 @@ class CFRNet(Estimator):
         return treated_output - control_output
 
     def predict_ite(self, tensorflow_session, covariates):
-        return self.predict(tensorflow_session=tensorflow_session, covariates=covariates)
+        if self.center_data:
+            return self.predict(
+                    tensorflow_session=tensorflow_session,
+                    covariates=self.covariates_scaler.transform(covariates)
+                )
+        return self.predict(
+            tensorflow_session=tensorflow_session, covariates=covariates
+        )
 
     def predict_ate(self, tensorflow_session, covariates):
         return np.mean(self.predict_ite(tensorflow_session=tensorflow_session, covariates=covariates))
