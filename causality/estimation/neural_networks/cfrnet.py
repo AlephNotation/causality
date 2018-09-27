@@ -27,7 +27,7 @@ class CFRNet(Estimator):
             covariates,
             observed_outcomes,
             treatment_assignment,
-            configuration,
+            configuration=None,
             optimizer="RMSProp",
             num_iterations=3000,
             num_iterations_per_decay=100,
@@ -36,6 +36,22 @@ class CFRNet(Estimator):
             *args, **kwargs):
 
         self.configuration = configuration
+        if self.configuration is None:
+            # use default configuration.
+
+            configuration = {
+                "rbf_sigma": 0.1, "dim_in": 200, "wass_lambda": 10.0,
+                "decay": 0.3, "dropout_in": 1.0, "weight_init": 0.1,
+                "use_p_correction": 0, "batch_size": 100, "rep_weight_decay": 0,
+                "wass_iterations": 10, "reweight_sample": 1, "p_alpha": 0,
+                "varsel": 0, "n_in": 3, "dim_out": 100,
+                "dropout_out": 1.0, "n_out": 3, "p_lambda": 0.0001,
+                "lrate_decay": 0.97, "lrate": 0.001, "wass_bpt": 1,
+                "batch_norm": 0, "nonlin": "elu", "normalization": "divide",
+                "imb_fun": "wass", "split_output": 1, "optimizer": "Adam",
+                "pred_output_delay": 0, "loss": "l2", "sparse": 0,
+                "varsel": 0, "repetitions": 1, "output_delay": 100
+            }
 
         self.treatment_probability = np.mean(treatment_assignment)
         _, num_covariates = covariates.shape
