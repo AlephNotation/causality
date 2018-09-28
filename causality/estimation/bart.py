@@ -3,7 +3,7 @@ import rpy2
 from rpy2.robjects import r as R
 
 from causality.data.transformations import (
-    r_compatibility, treatment_is_covariate, virtual_twins
+    split_covariates, virtual_twins, to_Rmatrix
 )
 from causality.estimation.estimator import Estimator
 
@@ -32,26 +32,31 @@ class BART(Estimator):
         self.bart_type = bart_type
         self.rbart = None
 
-    @treatment_is_covariate
-    @r_compatibility
-    def fit(self, covariates, observed_outcomes, *args, **kwargs):
-        self.rbart = R(self.bart_type)(
-            x_train=covariates, y_train=observed_outcomes
+    @split_covariates
+    def fit(self, treated_covariates, treated_outcomes,
+            control_covariates, control_outcomes, *args, **kwargs):
+        self.treated_bart = R(self.bart_type)(
+            x_train=treated_covariates,
+            y_train=treated_outcomes
+        )
+
+        self.control_bart = R(self.bart_type)(
+            x_train=control_covariates,
+            y_train=control_outcomes
         )
         return self
 
-    @virtual_twins(convert_to_robjects=True)
-    def predict(self, covariates_treated, covariates_control, *args, **kwargs):
-        # XXX: Why does this not work to predict ate properly?
+    def predict(self, covariates, *args, **kwargs):
         treated_predictions = np.mean(
             R("predict.{}".format(self.bart_type))(
-                self.rbart, covariates_treated
+                self.treated_bart, newdata=to_Rmatrix(covariates)
             ), axis=0
         )
 
         control_predictions = np.mean(
             R("predict.{}".format(self.bart_type))(
-                self.rbart, covariates_control
+                self.control_bart,
+                to_Rmatrix(covariates)
             ), axis=0
         )
 

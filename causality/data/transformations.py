@@ -3,7 +3,7 @@ from functools import wraps
 
 import numpy as np
 from rpy2.robjects import r as R
-from rpy2.robjects import FloatVector
+from rpy2.robjects import FloatVector, Matrix
 
 
 #  R Compatibility {{{ #
@@ -81,7 +81,40 @@ def r_compatibility(method):
         )
 
     return wrapped
+
+
+def to_Rmatrix(array):
+    num_rows, num_columns = array.shape
+    vector = FloatVector(array.reshape((array.size,)))
+    return R("matrix")(vector, nrow=num_rows, ncol=num_columns)
+
 #  }}} R Compatibility #
+
+
+def split_covariates(method):
+    @wraps(method)
+    def wrapped(self, covariates, observed_outcomes, treatment_assignment, **kwargs):
+        treated_covariates = to_Rmatrix(covariates[treatment_assignment == 1, ...])
+        treated_outcomes = FloatVector(
+            observed_outcomes[treatment_assignment == 1, ...]
+        )
+
+        control_covariates = to_Rmatrix(covariates[treatment_assignment == 0, ...])
+        control_outcomes = FloatVector(
+            observed_outcomes[treatment_assignment == 0, ...]
+        )
+
+        return method(
+            self,
+            treated_covariates=treated_covariates,
+            treated_outcomes=treated_outcomes,
+            control_covariates=control_covariates,
+            control_outcomes=control_outcomes,
+            **kwargs
+        )
+
+    return wrapped
+
 
 
 def treatment_to_covariate(covariates, treatment_assignment):
@@ -140,16 +173,11 @@ def virtual_twins(convert_to_robjects=False):
             covariates_control = treatment_to_covariate(
                 covariates=covariates, treatment_assignment=none_treated
             )
-            if convert_to_robjects:
-                covariates_treated = R("matrix")(
-                    FloatVector(covariates_treated.flatten()),
-                    nrow=num_units
-                )
 
-                covariates_control = R("matrix")(
-                    FloatVector(covariates_control.flatten()),
-                    nrow=num_units
-                )
+            if convert_to_robjects:
+
+                covariates_treated = to_Rmatrix(covariates_treated)
+                covariates_control = to_Rmatrix(covariates_control)
 
             covariate_clones = {
                 "covariates_treated": covariates_treated,
