@@ -28,19 +28,13 @@ def zhao_treatment_difference(treatment_effect_predictions,
     for threshold in effect_thresholds:
         subgroups.append({
             "treated": validation_responses[
-                treatment_effect_predictions > threshold & treatment_assignment
+                (treatment_effect_predictions > threshold) & treatment_assignment
             ],
 
             "control": validation_responses[
-                treatment_effect_predictions > threshold & ~treatment_assignment
+                (treatment_effect_predictions > threshold) & (~treatment_assignment)
             ],
         })
-
-
-    # subgroups = [
-    #     treatment_effect_predictions[treatment_effect_predictions >= threshold]
-    #     for threshold in effect_thresholds
-    # ]
 
     subgroup_statistics = [
         subgroup_function(subgroup["treated"]) - subgroup_function(subgroup["control"])
