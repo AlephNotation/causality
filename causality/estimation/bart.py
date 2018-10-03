@@ -1,10 +1,9 @@
 import numpy as np
 import rpy2
 from rpy2.robjects import r as R
+from rpy2.robjects import FloatVector
 
-from causality.data.transformations import (
-    split_covariates, virtual_twins, to_Rmatrix
-)
+from causality.data.transformations import to_Rmatrix
 from causality.estimation.estimator import Estimator
 
 # for continuous outcomes, check: https://cran.r-project.org/web/packages/BART/BART.pdf
@@ -32,32 +31,57 @@ class BART(Estimator):
         self.bart_type = bart_type
         self.rbart = None
 
-    @split_covariates
+    def fit_predict(self, train_covariates, train_treatment_assignment,
+                    train_observed_outcomes, test_covariates):
+        treated_responses = train_observed_outcomes[train_treatment_assignment == 1]
+        treated_covariates = train_covariates[train_treatment_assignment == 1, ...]
+
+        treated_predictions = R(self.bart_type)(
+            x_train=to_Rmatrix(treated_covariates),
+            y_train=FloatVector(treated_responses),
+            x_test=to_Rmatrix(test_covariates)
+        ).rx2("yhat.test.mean")
+
+        control_responses = train_observed_outcomes[train_treatment_assignment == 0]
+        control_covariates = train_covariates[train_treatment_assignment == 0, ...]
+
+        control_predictions = R(self.bart_type)(
+            x_train=to_Rmatrix(control_covariates),
+            y_train=FloatVector(control_responses),
+            x_test=to_Rmatrix(test_covariates)
+        ).rx2("yhat.test.mean")
+
+        return np.asarray(treated_predictions) - np.asarray(control_predictions)
+
+    def fit_predict_ite(self, train_covariates, train_treatment_assignment,
+                        train_observed_outcomes, test_covariates):
+        return self.fit_predict(
+            train_covariates=train_covariates,
+            train_treatment_assignment=train_treatment_assignment,
+            train_observed_outcomes=train_observed_outcomes,
+            test_covariates=test_covariates,
+        )
+
+    def fit_predict_ate(self, train_covariates, train_treatment_assignment,
+                        train_observed_outcomes, test_covariates):
+        return np.mean(self.fit_predict_ite(
+            train_covariates=train_covariates,
+            train_treatment_assignment=train_treatment_assignment,
+            train_observed_outcomes=train_observed_outcomes,
+            test_covariates=test_covariates
+        ))
+
     def fit(self, treated_covariates, treated_outcomes,
             control_covariates, control_outcomes, *args, **kwargs):
-        self.treated_bart = R(self.bart_type)(
-            x_train=treated_covariates,
-            y_train=treated_outcomes
+        raise NotImplementedError(
+            "In BART, it is currently not possible to "
+            "properly split 'fit', and 'predict' in two steps."
+            "To estimate ITE, please call `BART.fit_predict` instead."
         )
-
-        self.control_bart = R(self.bart_type)(
-            x_train=control_covariates,
-            y_train=control_outcomes
-        )
-        return self
 
     def predict(self, covariates, *args, **kwargs):
-        treated_predictions = np.mean(
-            R("predict.{}".format(self.bart_type))(
-                self.treated_bart, newdata=to_Rmatrix(covariates)
-            ), axis=0
+        raise NotImplementedError(
+            "In BART, it is currently not possible to "
+            "properly split 'fit', and 'predict' in two steps."
+            "To estimate ITE, please call `BART.fit_predict` instead."
         )
-
-        control_predictions = np.mean(
-            R("predict.{}".format(self.bart_type))(
-                self.control_bart,
-                to_Rmatrix(covariates)
-            ), axis=0
-        )
-
-        return treated_predictions - control_predictions

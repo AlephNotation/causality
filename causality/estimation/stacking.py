@@ -1,18 +1,21 @@
 import numpy as np
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
-from sklearn.linear_model import LinearRegression
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.svm import SVR as SVM_SVR
+from sklearn.ensemble import GradientBoostingRegressor
 
 from causality.data.transformations import treatment_is_covariate, virtual_twins
 from causality.estimation.estimator import Estimator
-# from causality.estimation.propensity_score_matching import NearestNeighborMatching
 
 
 class Stacking(Estimator):
     def __init__(self, meta_learner=RandomForestRegressor(),
                  base_learners=(
                      RandomForestRegressor(),
-                     LinearRegression(),)):
+                     KNeighborsRegressor(n_neighbors=5),
+                     SVM_SVR(),
+                     GradientBoostingRegressor(),),):
         self.meta_learner = meta_learner
         self.base_learners = base_learners
 

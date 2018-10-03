@@ -31,11 +31,15 @@ class CausalForest(Estimator):
 
     @r_compatibility
     def fit(self, covariates, observed_outcomes, treatment_assignment,
-            num_trees=5000, tune_parameters=True, sample_fraction=0.5,
-            min_node_size=5, ci_group_size=2, alpha=0.05,
+            num_trees=2000, tune_parameters=False, sample_fraction=0.5,
+            min_node_size=5, honesty=True, ci_group_size=2, alpha=0.05,
             imbalance_penalty=0., stabilize_splits=True,
-            seed=1, num_fit_trees=200, num_fit_reps=10,
+            seed=None, num_fit_trees=200, num_fit_reps=50,
             num_optimize_reps=1000, **kwargs):
+
+        if seed is None:
+            seed = np.random.randint(0, 10 ** 4)
+
 
         self.rforest = R("causal_forest")(
             X=covariates, Y=observed_outcomes, W=treatment_assignment,

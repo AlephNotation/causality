@@ -2,8 +2,12 @@
 from functools import wraps
 
 import numpy as np
-from rpy2.robjects import r as R
-from rpy2.robjects import FloatVector, Matrix
+import rpy2
+import rpy2.robjects as ro
+import rpy2.robjects.numpy2ri
+from rpy2.robjects import FloatVector
+
+rpy2.robjects.numpy2ri.activate()
 
 
 #  R Compatibility {{{ #
@@ -30,12 +34,7 @@ def to_robjects(covariates, observed_outcomes=None, treatment_assignment=None):
     """
     num_units, *_ = covariates.shape
 
-    robjects = {
-        "covariates": R("matrix")(
-            FloatVector(covariates.flatten()),
-            nrow=num_units
-        ),
-    }
+    robjects = {"covariates": to_Rmatrix(covariates)}
 
     if observed_outcomes is not None:
         robjects.update({
@@ -85,8 +84,7 @@ def r_compatibility(method):
 
 def to_Rmatrix(array):
     num_rows, num_columns = array.shape
-    vector = FloatVector(array.reshape((array.size,)))
-    return R("matrix")(vector, nrow=num_rows, ncol=num_columns)
+    return ro.r.matrix(array, nrow=num_rows, ncol=num_columns)
 
 #  }}} R Compatibility #
 
@@ -94,15 +92,12 @@ def to_Rmatrix(array):
 def split_covariates(method):
     @wraps(method)
     def wrapped(self, covariates, observed_outcomes, treatment_assignment, **kwargs):
-        treated_covariates = to_Rmatrix(covariates[treatment_assignment == 1, ...])
-        treated_outcomes = FloatVector(
-            observed_outcomes[treatment_assignment == 1, ...]
-        )
+        treatment = treatment_assignment.astype(bool)
+        treated_covariates = to_Rmatrix(covariates[treatment == 1, ...])
+        treated_outcomes = FloatVector(observed_outcomes[treatment == 1, ...])
 
-        control_covariates = to_Rmatrix(covariates[treatment_assignment == 0, ...])
-        control_outcomes = FloatVector(
-            observed_outcomes[treatment_assignment == 0, ...]
-        )
+        control_covariates = to_Rmatrix(covariates[treatment == 0, ...])
+        control_outcomes = FloatVector(observed_outcomes[treatment == 0, ...])
 
         return method(
             self,
@@ -114,7 +109,6 @@ def split_covariates(method):
         )
 
     return wrapped
-
 
 
 def treatment_to_covariate(covariates, treatment_assignment):

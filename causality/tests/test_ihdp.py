@@ -98,7 +98,12 @@ def test_bart(replicate_number=0):
     error = abs_ate(
         mu1=test_data.mu1,
         mu0=test_data.mu0,
-        predicted_ate=BART().fit(**train_data.asdict()).predict_ate(test_data.covariates)
+        predicted_ate=BART().fit_predict_ate(
+            train_covariates=train_data.covariates,
+            train_treatment_assignment=train_data.treatment_assignment,
+            train_observed_outcomes=train_data.observed_outcomes,
+            test_covariates=test_data.covariates
+        )
     )
 
     assert np.allclose(error, 0., atol=0.1)
