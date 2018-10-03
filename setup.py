@@ -14,7 +14,10 @@ PROJECT_ROOT = dirname(realpath(__file__))
 REQUIREMENTS_FILE = path_join(PROJECT_ROOT, "requirements.txt")
 
 with open(REQUIREMENTS_FILE, "r") as f:
-    INSTALL_REQUIREMENTS = f.read().splitlines()
+    INSTALL_REQUIREMENTS = [
+        requirement for requirement in f.read().splitlines()
+        if not requirement.startswith("-e git")
+    ]
 
 SETUP_REQUIREMENTS = ["pytest-runner"]
 TEST_REQUIREMENTS = ["pytest", "pytest-cov", "hypothesis"]
@@ -32,6 +35,7 @@ if __name__ == "__main__":
         package_data={"docs": ["*"]},
         include_package_data=True,
         install_requires=INSTALL_REQUIREMENTS,
+        dependency_links=['https://github.com/MFreidank/cfrnet/tarball/development#egg=cfrnet'],
         setup_requires=SETUP_REQUIREMENTS,
         tests_require=TEST_REQUIREMENTS,
     )
