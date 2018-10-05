@@ -1,6 +1,9 @@
 from collections import namedtuple
+
 import numpy as np
 import pandas as pd
+import rpy2
+from rpy2.robjects import r as R
 
 
 ZhaoTreatmentDifference = namedtuple(
@@ -49,3 +52,44 @@ def zhao_treatment_difference(treatment_effect_predictions,
         ))
 
     return results
+
+
+def zhao_auc(zhao_results):
+    """ Area under the zhao treatment effect curve.
+        Higher values correspond to better treatment effect predictions.
+
+    Parameters
+    ----------
+    zhao_results : ZhaoTreatmentDifference or pandas.DataFrame
+        TODO
+
+    """
+    if isinstance(zhao_results, tuple):
+        zhao_results = pd.DataFrame(data=dict(
+            q=zhao_results.quantiles,
+            tau_hat=zhao_results.effect_thresholds,
+            delta=zhao_results.subgroup_statistics
+
+        ))
+
+    try:
+        R("library(flux)")  # load grf R library
+    except rpy2.rinterface.RRuntimeError:
+        try:
+            R('install.packages("flux")')
+        except rpy2.rinterface.RRuntimeError:
+            raise ValueError(
+                "Attempted to install necessary R dependency 'flux' "
+                "in R, but installation failed.\nPlease first install 'flux' "
+                "from R-package repository CRAN using "
+                'install.packages("flux") inside an R-shell.'
+            )
+
+    x = zhao_results.quantiles
+    y = zhao_results.subgroup_statistics
+
+    threshold = zhao_results.subgroup_statistics[0]
+    assert threshold >= 0
+    y_thresholded = y - threshold
+
+    return R("flux::auc")(x=x, y=y_thresholded)
