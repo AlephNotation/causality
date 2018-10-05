@@ -54,7 +54,7 @@ def zhao_treatment_difference(treatment_effect_predictions,
     return results
 
 
-def zhao_auc(zhao_results):
+def zhao_auc(zhao_results, quantile_cutoff=0.8):
     """ Area under the zhao treatment effect curve.
         Higher values correspond to better treatment effect predictions.
 
@@ -73,7 +73,7 @@ def zhao_auc(zhao_results):
         ))
 
     try:
-        R("library(flux)")  # load grf R library
+        R('library("flux")')  # load grf R library
     except rpy2.rinterface.RRuntimeError:
         try:
             R('install.packages("flux")')
@@ -85,11 +85,12 @@ def zhao_auc(zhao_results):
                 'install.packages("flux") inside an R-shell.'
             )
 
-    x = zhao_results.quantiles
-    y = zhao_results.subgroup_statistics
+    index_mask = zhao_results.q.values <= quantile_cutoff
+    x = zhao_results.q.values[index_mask]
+    y = zhao_results.delta.values[index_mask]
 
-    threshold = zhao_results.subgroup_statistics[0]
+    threshold = zhao_results.delta[0]
     assert threshold >= 0
     y_thresholded = y - threshold
 
-    return R("flux::auc")(x=x, y=y_thresholded)
+    return float(np.asarray(R("flux::auc")(x=x, y=y_thresholded))[0])
