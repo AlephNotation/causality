@@ -11,3 +11,4 @@ numpy>=1.11.0
 imblearn>=0.0
 rpy2>=2.9.4
 scikit_learn>=0.20.0
+travis-sphinx==2.0.0

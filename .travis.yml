@@ -15,9 +15,12 @@ install:
   - sudo apt-get update
   - sudo apt-get install r-base r-base-dev
   - pip install --upgrade pip
+  - pip install -r requirements.txt
   - python setup.py install
   - pip install pytest-cov
   - pip install coveralls 
+  - R -e "install.packages(grf)"
+  - R -e "install.packages(BART)"
 
 script:
     - pytest --doctest-modules
