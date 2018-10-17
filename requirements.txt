@@ -10,5 +10,4 @@ numpy>=1.11.0
 imblearn>=0.0
 rpy2>=2.9.4
 scikit_learn>=0.20.0
-umap>=0.1.1
 -e git+https://github.com/MFreidank/cfrnet.git@development#egg=cfrnet
