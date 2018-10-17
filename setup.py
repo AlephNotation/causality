@@ -34,8 +34,7 @@ if __name__ == "__main__":
         packages=find_packages(),
         package_data={"docs": ["*"]},
         include_package_data=True,
-        install_requires=INSTALL_REQUIREMENTS,
-        dependency_links=["git+https://github.com/MFreidank/cfrnet.git#egg=cfrnet"],
+        install_requires=INSTALL_REQUIREMENTS + ["https://github.com/MFreidank/cfrnet.git#egg=cfrnet"],
         setup_requires=SETUP_REQUIREMENTS,
         tests_require=TEST_REQUIREMENTS,
     )
