@@ -40,7 +40,6 @@ class CausalForest(Estimator):
         if seed is None:
             seed = np.random.randint(0, 10 ** 4)
 
-
         self.rforest = R("causal_forest")(
             X=covariates, Y=observed_outcomes, W=treatment_assignment,
             sample_fraction=sample_fraction, num_trees=num_trees,
