@@ -1,14 +1,14 @@
 tensorflow==1.8.0
-networkx==2.0
-pandas==0.20.3
-tqdm==4.23.1
-matplotlib==2.1.2
-setuptools==39.0.1
-seaborn==0.9
+networkx>=2.0
+pandas>=0.20.3
+tqdm>=4.23.1
+matplotlib>=2.1.2
+setuptools>=39.0.1
+seaborn>=0.9
 umap_learn==0.2.3
-numpy==1.11.0
-imblearn==0.0
-rpy2==2.9.4
-scikit_learn==0.20.0
-umap==0.1.1
+numpy>=1.11.0
+imblearn>=0.0
+rpy2>=2.9.4
+scikit_learn>=0.20.0
+umap>=0.1.1
 -e git+https://github.com/MFreidank/cfrnet.git@development#egg=cfrnet
