@@ -16,7 +16,6 @@ REQUIREMENTS_FILE = path_join(PROJECT_ROOT, "requirements.txt")
 with open(REQUIREMENTS_FILE, "r") as f:
     INSTALL_REQUIREMENTS = [
         requirement for requirement in f.read().splitlines()
-        # if not requirement.startswith("-e git")
     ]
 
 SETUP_REQUIREMENTS = ["pytest-runner"]

@@ -6,6 +6,7 @@ sys.path.insert(0, path_join(dirname(__file__), "..", "..", "cfrnet"))
 import json
 import numpy as np
 import tensorflow as tf
+import pytest
 
 from causality.data.datasets.ihdp import IHDP
 from causality.estimation.bart import BART
@@ -15,6 +16,13 @@ from causality.estimation.propensity_score_matching import NearestNeighborMatchi
 from causality.estimation.virtual_twins import VirtualTwins
 from causality.estimation.neural_networks.cfrnet import CFRNet
 from causality.diagnostics.synthetic_data import abs_ate
+
+try:
+    import cfrnet  # noqa
+except ImportError:
+    CFRNET_AVAILABLE = False
+else:
+    CFRNET_AVAILABLE = True
 
 
 def test_causal_forest(replicate_number=0):
@@ -69,6 +77,7 @@ def test_virtual_twins(replicate_number=0):
     assert np.allclose(error, 0., atol=0.1)
 
 
+@pytest.mark.skipif(not CFRNET_AVAILABLE, reason="CFRNet not installed.")
 def test_cfrnet(replicate_number=0):
     configfile = path_join(dirname(__file__), "..", "..", "cfrnet", "configs", "default.json")
     with open(configfile) as f:

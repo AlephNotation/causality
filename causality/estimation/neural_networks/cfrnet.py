@@ -3,8 +3,14 @@
 import argparse
 from collections import defaultdict
 
-from cfrnet.cfr.cfr_net import cfr_net
-from cfrnet.cfr.util import simplex_project
+try:
+    from cfrnet.cfr.cfr_net import cfr_net
+    from cfrnet.cfr.util import simplex_project
+except ImportError:
+    _CFRNET_AVAILABLE = False
+else:
+    _CFRNET_AVAILABLE = True
+
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 import tensorflow as tf
@@ -16,6 +22,13 @@ from causality.utils import optional_progressbar
 
 
 class CFRNet(Estimator):
+    def __init__(self, *args, **kwargs):
+        if not _CFRNET_AVAILABLE:
+            raise ImportError(
+                "Package 'git+https://github.com/MFreidank/cfrnet.git@development#egg=cfrnet' not installed. Run '[sudo] pip3 install -e git+https://github.com/MFreidank/cfrnet.git@development#egg=cfrnet' to use CFRNet."
+            )
+        super().__init__(*args, **kwargs)
+
     @property
     def train_history(self):
         try:
