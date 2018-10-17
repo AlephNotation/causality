@@ -19,8 +19,8 @@ install:
   - python setup.py install
   - pip install pytest-cov
   - pip install coveralls 
-  - R -e "install.packages(grf)"
-  - R -e "install.packages(BART)"
+  - sudo R -e "install.packages(grf)"
+  - sudo R -e "install.packages(BART)"
 
 script:
     - pytest --doctest-modules
