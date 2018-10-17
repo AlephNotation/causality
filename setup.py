@@ -35,7 +35,7 @@ if __name__ == "__main__":
         package_data={"docs": ["*"]},
         include_package_data=True,
         install_requires=INSTALL_REQUIREMENTS,
-        dependency_links=['https://github.com/MFreidank/cfrnet/tarball/development#egg=cfrnet'],
+        dependency_links=["git+https://github.com/MFreidank/cfrnet.git#egg=cfrnet"],
         setup_requires=SETUP_REQUIREMENTS,
         tests_require=TEST_REQUIREMENTS,
     )
