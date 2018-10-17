@@ -16,7 +16,7 @@ REQUIREMENTS_FILE = path_join(PROJECT_ROOT, "requirements.txt")
 with open(REQUIREMENTS_FILE, "r") as f:
     INSTALL_REQUIREMENTS = [
         requirement for requirement in f.read().splitlines()
-        if not requirement.startswith("-e git")
+        # if not requirement.startswith("-e git")
     ]
 
 SETUP_REQUIREMENTS = ["pytest-runner"]
@@ -34,7 +34,7 @@ if __name__ == "__main__":
         packages=find_packages(),
         package_data={"docs": ["*"]},
         include_package_data=True,
-        install_requires=INSTALL_REQUIREMENTS + ["pip @ https://github.com/MFreidank/cfrnet.git#egg=cfrnet"],
+        install_requires=INSTALL_REQUIREMENTS,
         setup_requires=SETUP_REQUIREMENTS,
         tests_require=TEST_REQUIREMENTS,
     )
