@@ -2,7 +2,6 @@ from collections import namedtuple
 import warnings
 
 import numpy as np
-import pandas as pd
 from sklearn.model_selection import StratifiedKFold
 
 TrainValidationSplit = namedtuple("TrainValidationSplit", ["train", "validation"])
@@ -24,39 +23,6 @@ class Dataset(object):
         for argument_name, argument_value in kwargs.items():
             self.__setattr__(argument_name, argument_value)
 
-    @classmethod
-    def from_csv(cls, covariates_csv_filename, outcomes_csv_filename,
-                 treatment_column="TRT", outcome_column="chg",
-                 treatment_map=None,
-                 store_columns=None):
-
-        covariates = pd.read_csv(covariates_csv_filename)
-        kwargs = {}
-        if store_columns:
-            for store_column in store_columns:
-                kwargs[store_column] = covariates[store_column]
-                covariates = covariates.drop([store_column], axis=1)
-
-
-        if treatment_map:
-            assert len(treatment_map.keys()) == 2
-            covariates[treatment_column] = [
-                treatment_map[treatment_name]
-                for treatment_name in covariates[treatment_column]
-            ]
-        treatment = covariates[treatment_column].as_matrix()
-
-        covariates = pd.get_dummies(covariates.drop([treatment_column], axis=1)).as_matrix()
-
-        outcomes = pd.read_csv(outcomes_csv_filename)[outcome_column].as_matrix()
-
-        return cls(
-            covariates=covariates,
-            observed_outcomes=outcomes,
-            treatment_assignment=treatment, **kwargs
-        )
-
-
     def keep_units(self, unit_indices):
         assert max(unit_indices) <= self.num_units
         return self.__class__(**self.asdict(units=unit_indices))
@@ -76,7 +42,6 @@ class Dataset(object):
             else:
                 yield (self.keep_units(unit_indices=train_indices),
                        self.keep_units(unit_indices=test_indices))
-
 
     def asdict(self, units=None):
         if units is not None:
